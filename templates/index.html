@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <title>Cryptocurrency Data</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            padding: 20px;
+            font-family: 'Poppins';
+        }
+
+        h1 {
+            color: #ffffff;
+        }
+
+        table {
+            width: 100%;
+            border: none;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: none;
+            text-align: left;
+        }
+
+        th {
+            background-color: #042242;
+            color: white;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin-block: 20px;
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #7d7d7d;
+        }
+
+        #lastFetched,
+        #timer {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+    <script>
+        let timerInterval;
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById("lastFetched").innerText = "Last Fetched: " + now.toLocaleTimeString();
+        }
+
+        function startCountdown(duration) {
+            let timer = duration, minutes, seconds;
+
+            // Clear any existing interval to avoid multiple timers
+            clearInterval(timerInterval);
+
+            timerInterval = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                document.getElementById("timer").innerText = `Next refresh in ${minutes}:${seconds}`;
+
+                if (--timer < 0) {
+                    clearInterval(timerInterval);
+                    fetchData();
+                    startCountdown(300);
+                }
+            }, 1000);
+        }
+
+        function fetchData() {
+            fetch('/')
+                .then(response => response.text())
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                    updateTime();
+                    startCountdown(300);
+                });
+        }
+
+        function startTimer() {
+            updateTime();
+            fetchData();
+            startCountdown(300);
+        }
+
+        window.onload = startTimer;
+    </script>
+</head>
+
+<body>
+    <h1>Top 50 Cryptocurrencies</h1>
+    <h2>Analysis Summary</h2>
+    <div>
+        <h3>Top 5 Cryptocurrencies</h3>
+        <div>{{ analysis["Top 5 Cryptocurrencies"]|safe }}</div>
+        <p><strong>Average Price:</strong> {{ analysis["Average Price"] }}</p>
+        <p><strong>Highest Price Change (24h):</strong> {{ analysis["Highest Price Change (24h)"] }}</p>
+        <p><strong>Lowest Price Change (24h):</strong> {{ analysis["Lowest Price Change (24h)"] }}</p>
+    </div>
+
+    <div id="lastFetched"></div>
+    <div id="timer">Next refresh in 05:00</div>
+    <button onclick="fetchData()">Refresh Now</button>
+    <div>{{ tables|safe }}</div>
+    <a href="/download">Download Excel Sheet</a>
+</body>
+
+</html>
